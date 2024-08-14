@@ -9,14 +9,14 @@ public class Boid : MonoBehaviour
     public float separationWeight = 1f;
     public float alignmentWeight = 1f;
     public float cohesionWeight = 1f;
-    public float mouseAttractionWeight = 1f; // New weight for mouse attraction
+    public float mouseAttractionWeight = 1f; 
     public float fixedHeight = 0f;
     public float rotationSpeed = 5f;
     public float modelRotationOffset = 90f;
 
     private Rigidbody rb;
     private List<Boid> neighbors = new List<Boid>();
-    private static Vector3 mousePosition; // Static variable to store mouse position
+    private static Vector3 mousePosition; 
 
     void Start()
     {
@@ -29,7 +29,7 @@ public class Boid : MonoBehaviour
     void Update()
     {
         UpdateMousePosition();
-        RotateTowardsMouse(); // New method to handle rotation
+        RotateTowardsMouse(); 
     }
 
     void FixedUpdate()
@@ -70,20 +70,16 @@ public class Boid : MonoBehaviour
     void RotateTowardsMouse()
     {
         Vector3 directionToMouse = mousePosition - transform.position;
-        directionToMouse.y = 0; // Ensure the direction is in the XZ plane
+        directionToMouse.y = 0; 
 
         if (directionToMouse != Vector3.zero)
         {
-            // Calculate the angle in the XZ plane
             float angle = Mathf.Atan2(directionToMouse.x, directionToMouse.z) * Mathf.Rad2Deg;
 
-            // Add the offset to compensate for the model's inherent rotation
             angle += modelRotationOffset;
 
-            // Create a rotation that only affects the Y-axis (yaw)
             Quaternion targetRotation = Quaternion.Euler(0, angle, 0);
 
-            // Smoothly rotate towards the target rotation
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
     }
