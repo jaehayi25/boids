@@ -14,11 +14,13 @@ public class Boid : MonoBehaviour
     public float rotationSpeed = 5f;
     public float modelRotationOffset = 90f;
 
+    [HideInInspector]
+    public List<Boid> neighbors = new List<Boid>();
+
     private Rigidbody rb;
-    private List<Boid> neighbors = new List<Boid>();
     private static Vector3 mousePosition; 
 
-    void Start()
+    void Awake()
     {
         rb = GetComponent<Rigidbody>();
         Vector3 position = transform.position;
@@ -34,7 +36,7 @@ public class Boid : MonoBehaviour
 
     void FixedUpdate()
     {
-        UpdateNeighbors();
+        // UpdateNeighbors();
         Vector3 separation = CalculateSeparation();
         Vector3 alignment = CalculateAlignment();
         Vector3 cohesion = CalculateCohesion();
@@ -91,6 +93,7 @@ public class Boid : MonoBehaviour
         return Vector3.ClampMagnitude(toMouse, maxSteerForce);
     }
 
+    /*
     void UpdateNeighbors()
     {
         neighbors.Clear();
@@ -107,6 +110,7 @@ public class Boid : MonoBehaviour
             }
         }
     }
+    */
 
     Vector3 CalculateSeparation()
     {
