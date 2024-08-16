@@ -91,4 +91,16 @@ public class BoidManager : MonoBehaviour
 
         return centerOfMass;
     }
+
+    public List<Transform> getBoidTransforms()
+    {
+        List<Transform> boidTransforms = new List<Transform>();
+
+        foreach (Boid boid in boids)
+        {
+            boidTransforms.Add(boid.transform); 
+        }
+
+        return boidTransforms; 
+    }
 }
