@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 using System.Collections.Generic;
 
 public class Boid : MonoBehaviour
@@ -20,12 +21,18 @@ public class Boid : MonoBehaviour
     private Rigidbody rb;
     private static Vector3 mousePosition;
 
-    public float jumpForce = 5f;
+    private NavMeshAgent agent;
+
+    public float jumpHeight = 2f;
     bool isJumping = false;
+    private Vector3 jumpStartPosition;
+    private Vector3 jumpEndPosition;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        agent = GetComponent<NavMeshAgent>();
+
         Vector3 position = transform.position;
         position.y = fixedHeight;
         transform.position = position;
@@ -35,7 +42,7 @@ public class Boid : MonoBehaviour
     {
         UpdateMousePosition();
         RotateTowardsMouse();
-        UpdateJump(); 
+        JumpIfOnLink(); 
     }
 
     void FixedUpdate()
@@ -93,35 +100,68 @@ public class Boid : MonoBehaviour
         }
     }
 
-    void UpdateJump()
+    void JumpIfOnLink()
     {
-        if (Input.GetKeyDown("space"))
+        Debug.Log(agent.isOnOffMeshLink); 
+        if (agent.isOnOffMeshLink)
         {
-            StartJump();
+            if (!isJumping)
+            {
+                StartJump();
+            }
+            else
+            {
+                UpdateJump();
+            }
+        }
+        else
+        {
+            isJumping = false;
         }
     }
 
     void StartJump()
     {
-        // Calculate jump direction (up and forward)
         isJumping = true;
+        agent.updatePosition = false;
+        agent.updateRotation = false;
 
-        Vector3 jumpDirection = (transform.up + transform.forward).normalized;
-        rb.AddForce(jumpDirection * jumpForce, ForceMode.Impulse);
+        OffMeshLinkData data = agent.currentOffMeshLinkData;
+        jumpStartPosition = transform.position;
+        jumpEndPosition = data.endPos + Vector3.up * agent.baseOffset;
 
-        Invoke("EndJump", 1f); // Adjust time as needed
+        // Trigger jump animation
+        /*
+        if (animator)
+        {
+            animator.SetTrigger("Jump");
+        }
+        */
+    }
+
+    void UpdateJump()
+    {
+        float jumpProgress = (transform.position - jumpStartPosition).magnitude / (jumpEndPosition - jumpStartPosition).magnitude;
+
+        if (jumpProgress < 1f)
+        {
+            Vector3 jumpPosition = Vector3.Lerp(jumpStartPosition, jumpEndPosition, jumpProgress);
+            jumpPosition.y += Mathf.Sin(jumpProgress * Mathf.PI) * jumpHeight;
+
+            transform.position = jumpPosition;
+        }
+        else
+        {
+            EndJump();
+        }
     }
 
     void EndJump()
     {
-        isJumping = false; 
-    }
-
-    Vector3 CalculateMouseAttraction()
-    {
-        Vector3 toMouse = mousePosition - transform.position;
-        toMouse.y = 0;
-        return Vector3.ClampMagnitude(toMouse, maxSteerForce);
+        isJumping = false;
+        agent.updatePosition = true;
+        agent.updateRotation = true;
+        agent.CompleteOffMeshLink();
     }
 
     /*
@@ -142,6 +182,13 @@ public class Boid : MonoBehaviour
         }
     }
     */
+
+    Vector3 CalculateMouseAttraction()
+    {
+        Vector3 toMouse = mousePosition - transform.position;
+        toMouse.y = 0;
+        return Vector3.ClampMagnitude(toMouse, maxSteerForce);
+    }
 
     Vector3 CalculateSeparation()
     {
