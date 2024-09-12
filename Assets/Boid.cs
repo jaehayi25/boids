@@ -14,11 +14,20 @@ public class Boid : MonoBehaviour
     public float rotationSpeed = 5f;
     public float modelRotationOffset = 90f;
 
+    private bool boidOn = true;
+
     [HideInInspector]
     public List<Boid> neighbors = new List<Boid>();
 
     private Rigidbody rb;
-    private static Vector3 mousePosition; 
+    private static Vector3 mousePosition;
+    
+    public float jumpDuration = 1.5f;
+    public float jumpHeight = 2f;
+
+    private bool isJumping = false;
+    private Vector3 jumpStartPosition;
+    private Vector3 jumpEndPosition;
 
     void Awake()
     {
@@ -28,34 +37,95 @@ public class Boid : MonoBehaviour
         transform.position = position;
     }
 
+
     void Update()
     {
-        UpdateMousePosition();
-        RotateTowardsMouse(); 
+        /*
+        if (boidOn)
+        {
+            UpdateMousePosition();
+            RotateTowardsMouse();
+        }
+        */
+        if (boidOn) // check if entered jump area
+        {
+            StartJump();
+        }
+        if (isJumping)
+        {
+            UpdateJump(); 
+        }
     }
+
+    void StartJump()
+    {
+        isJumping = true;
+        boidOn = false;
+
+        jumpStartPosition = transform.position;
+        jumpEndPosition = transform.position + new Vector3(2f, 2f, 2f);
+
+        // Trigger jump animation
+        /*
+        if (animator)
+        {
+            animator.SetTrigger("Jump");
+        }
+        */
+    }
+
+    void UpdateJump()
+    {
+        Vector3 num = transform.position - jumpStartPosition; num.y = 0f;
+        Vector3 den = jumpEndPosition - jumpStartPosition; den.y = 0f; 
+        float jumpProgress = num.magnitude / den.magnitude + Time.deltaTime / jumpDuration;
+        Debug.Log(jumpProgress); 
+
+        if (jumpProgress < 1f)
+        {
+            Vector3 jumpPosition = Vector3.Lerp(jumpStartPosition, jumpEndPosition, jumpProgress);
+            jumpPosition.y += Mathf.Sin(jumpProgress * Mathf.PI) * jumpHeight;
+
+            transform.position = jumpPosition;
+        }
+        else
+        {
+            EndJump();
+        }
+    }
+
+    void EndJump()
+    {
+        isJumping = false;
+        boidOn = true; 
+    }
+
 
     void FixedUpdate()
     {
         // UpdateNeighbors();
-        Vector3 separation = CalculateSeparation();
-        Vector3 alignment = CalculateAlignment();
-        Vector3 cohesion = CalculateCohesion();
-        Vector3 mouseAttraction = CalculateMouseAttraction();
+        if (boidOn)
+        {
+            Vector3 separation = CalculateSeparation();
+            Vector3 alignment = CalculateAlignment();
+            Vector3 cohesion = CalculateCohesion();
+            Vector3 mouseAttraction = CalculateMouseAttraction();
 
-        Vector3 acceleration = separation * separationWeight +
-                               alignment * alignmentWeight +
-                               cohesion * cohesionWeight +
-                               mouseAttraction * mouseAttractionWeight;
+            Vector3 acceleration = separation * separationWeight +
+                                   alignment * alignmentWeight +
+                                   cohesion * cohesionWeight +
+                                   mouseAttraction * mouseAttractionWeight;
 
-        acceleration.y = 0;
+            acceleration.y = 0;
 
-        rb.velocity += acceleration * Time.fixedDeltaTime;
-        rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed);
-        rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+            rb.velocity += acceleration * Time.fixedDeltaTime;
+            rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed);
+            rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
 
-        Vector3 position = rb.position;
-        position.y = fixedHeight;
-        rb.position = position;
+            Vector3 position = rb.position;
+            position.y = fixedHeight;
+            rb.position = position;
+        }
     }
 
     void UpdateMousePosition()

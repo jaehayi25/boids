@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class CameraFollowAndZoom : MonoBehaviour
 {
     private List<Transform> targets; // List of objects to frame
-    public Vector3 offset = new Vector3(0, 10, -10); // Camera offset
+    public Vector3 offset = new Vector3(0, 7.6f, -4.4f); // Camera offset
     public float smoothTime = 0.5f; // Smoothing for camera movement
     public float minZoom = 40f; // Minimum FOV
     public float maxZoom = 10f; // Maximum FOV
