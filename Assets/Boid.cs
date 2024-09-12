@@ -18,10 +18,7 @@ public class Boid : MonoBehaviour
     public List<Boid> neighbors = new List<Boid>();
 
     private Rigidbody rb;
-    private static Vector3 mousePosition;
-
-    public float jumpForce = 5f;
-    bool isJumping = false;
+    private static Vector3 mousePosition; 
 
     void Awake()
     {
@@ -34,35 +31,31 @@ public class Boid : MonoBehaviour
     void Update()
     {
         UpdateMousePosition();
-        RotateTowardsMouse();
-        UpdateJump(); 
+        RotateTowardsMouse(); 
     }
 
     void FixedUpdate()
     {
         // UpdateNeighbors();
-        if (!isJumping)
-        {
-            Vector3 separation = CalculateSeparation();
-            Vector3 alignment = CalculateAlignment();
-            Vector3 cohesion = CalculateCohesion();
-            Vector3 mouseAttraction = CalculateMouseAttraction();
+        Vector3 separation = CalculateSeparation();
+        Vector3 alignment = CalculateAlignment();
+        Vector3 cohesion = CalculateCohesion();
+        Vector3 mouseAttraction = CalculateMouseAttraction();
 
-            Vector3 acceleration = separation * separationWeight +
-                                   alignment * alignmentWeight +
-                                   cohesion * cohesionWeight +
-                                   mouseAttraction * mouseAttractionWeight;
+        Vector3 acceleration = separation * separationWeight +
+                               alignment * alignmentWeight +
+                               cohesion * cohesionWeight +
+                               mouseAttraction * mouseAttractionWeight;
 
-            acceleration.y = 0;
+        acceleration.y = 0;
 
-            rb.velocity += acceleration * Time.fixedDeltaTime;
-            rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed);
-            rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+        rb.velocity += acceleration * Time.fixedDeltaTime;
+        rb.velocity = Vector3.ClampMagnitude(rb.velocity, maxSpeed);
+        rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
 
-            Vector3 position = rb.position;
-            position.y = fixedHeight;
-            rb.position = position;
-        }
+        Vector3 position = rb.position;
+        position.y = fixedHeight;
+        rb.position = position;
     }
 
     void UpdateMousePosition()
@@ -91,30 +84,6 @@ public class Boid : MonoBehaviour
 
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
-    }
-
-    void UpdateJump()
-    {
-        if (Input.GetKeyDown("space"))
-        {
-            StartJump();
-        }
-    }
-
-    void StartJump()
-    {
-        // Calculate jump direction (up and forward)
-        isJumping = true;
-
-        Vector3 jumpDirection = (transform.up + transform.forward).normalized;
-        rb.AddForce(jumpDirection * jumpForce, ForceMode.Impulse);
-
-        Invoke("EndJump", 1f); // Adjust time as needed
-    }
-
-    void EndJump()
-    {
-        isJumping = false; 
     }
 
     Vector3 CalculateMouseAttraction()
